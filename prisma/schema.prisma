@@ -1,0 +1,95 @@
+// Greenfield Academy — School Management System
+// Prisma schema (SQLite in this sandbox; switch `provider` to "postgresql" for production — see README)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// role values: "ADMIN" | "TEACHER" | "STUDENT" (validated in the application layer;
+// SQLite has no native enum type — the README documents the Postgres enum variant)
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("STUDENT")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  student      Student?
+  teacher      Teacher?
+
+  @@index([role])
+}
+
+model Student {
+  id          Int          @id @default(autoincrement())
+  userId      Int          @unique
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gradeLevel  String
+  dateOfBirth String? // YYYY-MM-DD
+  enrollments Enrollment[]
+
+  @@index([gradeLevel])
+}
+
+model Teacher {
+  id      Int      @id @default(autoincrement())
+  userId  Int      @unique
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courses Course[]
+}
+
+model Course {
+  id          Int          @id @default(autoincrement())
+  name        String
+  teacherId   Int?
+  teacher     Teacher?     @relation(fields: [teacherId], references: [id], onDelete: SetNull)
+  createdAt   DateTime     @default(now())
+  enrollments Enrollment[]
+
+  @@index([teacherId])
+}
+
+model Enrollment {
+  id         Int      @id @default(autoincrement())
+  studentId  Int
+  courseId   Int
+  student    Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  course     Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  attendance Attendance[]
+  grades     Grade[]
+  createdAt  DateTime   @default(now())
+
+  @@unique([studentId, courseId])
+  @@index([courseId])
+}
+
+// status values: "PRESENT" | "ABSENT" | "LATE"
+// @@unique([enrollmentId, date]) prevents duplicate records for the same student, course and date
+model Attendance {
+  id           Int        @id @default(autoincrement())
+  enrollmentId Int
+  date         String // YYYY-MM-DD
+  status       String
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
+  @@unique([enrollmentId, date])
+  @@index([date])
+}
+
+model Grade {
+  id             Int        @id @default(autoincrement())
+  enrollmentId   Int
+  assessmentName String
+  score          Float
+  maxScore       Float
+  createdAt      DateTime   @default(now())
+  enrollment     Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
+  @@index([enrollmentId])
+}
