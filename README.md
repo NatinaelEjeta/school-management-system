@@ -1,4 +1,4 @@
-﻿# Nejo preparatory School Academy â€” School Management System
+# Nejo preparatory School Academy — School Management System
 
    ## Screenshots
 
@@ -10,7 +10,7 @@
 
 A full-stack, role-based school management web application. One codebase ships the UI **and** the REST API: admins manage students, teachers and courses; teachers keep an attendance register and a grade book; students get a personal portal with per-course averages, attendance history and a downloadable PDF report card.
 
-Every request is authenticated with JWT and authorized **on the server** â€” the client role is never trusted.
+Every request is authenticated with JWT and authorized **on the server** — the client role is never trusted.
 
 ---
 
@@ -18,23 +18,23 @@ Every request is authenticated with JWT and authorized **on the server** â€�
 
 - **Authentication & authorization**
   - Email + password login, hashed with **bcrypt** (10 rounds).
-  - **JWT** sessions (7 days) delivered as an `httpOnly` cookie (`school_session`) â€” an `Authorization: Bearer <token>` header also works for API clients.
+  - **JWT** sessions (7 days) delivered as an `httpOnly` cookie (`school_session`) — an `Authorization: Bearer <token>` header also works for API clients.
   - Role-based access control with three roles: **ADMIN**, **TEACHER**, **STUDENT**. Guards run on every API route (`requireRole`, `assertCourseAccess`), and the user record is re-loaded from the database on each request so demotions/deletions take effect immediately.
-- **Student management (ADMIN)** â€” full CRUD with server-side search (`?search=`) and pagination (`?page=&pageSize=`, default 10 / max 50).
-- **Teacher management (ADMIN)** â€” full CRUD, one linked user account per teacher.
-- **Course management** â€” create/update/delete courses, assign (or clear) the owning teacher; `GET /api/courses` is role-scoped: admins see all, teachers see their own, students see what they are enrolled in.
-- **Enrollment** â€” enroll/unenroll students per course (`POST`/`DELETE /api/courses/:id/students`), with a `?scope=unenrolled` roster listing for the enroll dialog.
-- **Attendance register** â€” per course + date sheet with `PRESENT` / `ABSENT` / `LATE`, bulk-saved as an upsert; the `@@unique([enrollmentId, date])` constraint prevents duplicate records for the same student, course and date.
-- **Grade book** â€” assessments with a free-form name, `score` and `maxScore` (validated so `score â‰¤ maxScore`), listed per course, deletable individually.
-- **Student portal** â€” per-course averages plus an overall **weighted average** (`Î£ score / Î£ maxScore`), attendance summary (overall + per course + recent records), and a **PDF report card** export built with **jsPDF + jspdf-autotable** (A4, header band, per-course tables, averages and attendance rate).
-- **Admin dashboard** â€” totals (students, teachers, courses, enrollments), overall attendance rate, and **Recharts** charts: average grade per course (bar chart) and attendance distribution (pie chart).
-- **Robust API errors** â€” every failure returns `{ message, details? }`; Zod validation failures return `400` with field-level `details`, unique-constraint violations map to `409`, missing records to `404`, permission failures to `403`.
+- **Student management (ADMIN)** — full CRUD with server-side search (`?search=`) and pagination (`?page=&pageSize=`, default 10 / max 50).
+- **Teacher management (ADMIN)** — full CRUD, one linked user account per teacher.
+- **Course management** — create/update/delete courses, assign (or clear) the owning teacher; `GET /api/courses` is role-scoped: admins see all, teachers see their own, students see what they are enrolled in.
+- **Enrollment** — enroll/unenroll students per course (`POST`/`DELETE /api/courses/:id/students`), with a `?scope=unenrolled` roster listing for the enroll dialog.
+- **Attendance register** — per course + date sheet with `PRESENT` / `ABSENT` / `LATE`, bulk-saved as an upsert; the `@@unique([enrollmentId, date])` constraint prevents duplicate records for the same student, course and date.
+- **Grade book** — assessments with a free-form name, `score` and `maxScore` (validated so `score ≤ maxScore`), listed per course, deletable individually.
+- **Student portal** — per-course averages plus an overall **weighted average** (`Σ score / Σ maxScore`), attendance summary (overall + per course + recent records), and a **PDF report card** export built with **jsPDF + jspdf-autotable** (A4, header band, per-course tables, averages and attendance rate).
+- **Admin dashboard** — totals (students, teachers, courses, enrollments), overall attendance rate, and **Recharts** charts: average grade per course (bar chart) and attendance distribution (pie chart).
+- **Robust API errors** — every failure returns `{ message, details? }`; Zod validation failures return `400` with field-level `details`, unique-constraint violations map to `409`, missing records to `404`, permission failures to `403`.
 
 ## Tech Stack
 
 | Layer | Choice |
 | --- | --- |
-| Framework | **Next.js 16** (App Router â€” single `/` client page + API routes as the REST layer) |
+| Framework | **Next.js 16** (App Router — single `/` client page + API routes as the REST layer) |
 | Language | **TypeScript 5** |
 | UI | **Tailwind CSS 4** + **shadcn/ui** (New York style, neutral base) |
 | Database | **SQLite** (local, via Prisma) / **PostgreSQL** (production) |
@@ -49,13 +49,13 @@ Every request is authenticated with JWT and authorized **on the server** â€�
 
 The app uses a **Next.js full-stack layout** (one `/` page client app + REST API under `src/app/api/**`) with an **Express-style server layer**, so the backend reads like a classic layered service:
 
-- `src/server/controllers` â€” HTTP handlers: parse the request, enforce roles, set status codes.
-- `src/server/services` â€” business logic and all Prisma queries.
-- `src/server/middleware` â€” JWT authentication + RBAC guards (`requireRole`, `assertCourseAccess`).
-- `src/server/validation.ts` â€” Zod schemas for every request body.
-- `src/server/errors.ts` â€” `ApiError` + one centralized error handler used by every route.
+- `src/server/controllers` — HTTP handlers: parse the request, enforce roles, set status codes.
+- `src/server/services` — business logic and all Prisma queries.
+- `src/server/middleware` — JWT authentication + RBAC guards (`requireRole`, `assertCourseAccess`).
+- `src/server/validation.ts` — Zod schemas for every request body.
+- `src/server/errors.ts` — `ApiError` + one centralized error handler used by every route.
 
-**Every route checks permissions on the SERVER** â€” roles are never trusted from the client.
+**Every route checks permissions on the SERVER** — roles are never trusted from the client.
 
 ## Project Structure
 
@@ -68,7 +68,7 @@ src/
     page.tsx                          # Single-page client app (login + role-based workspace)
     layout.tsx / globals.css          # Root layout, Tailwind 4 theme tokens
     api/
-      route.ts                        # GET /api â€” health check
+      route.ts                        # GET /api — health check
       auth/
         login/route.ts                # POST   /api/auth/login
         logout/route.ts               # POST   /api/auth/logout
@@ -117,8 +117,8 @@ src/
 
 ### Prerequisites
 
-- **Node.js 20+** or **Bun 1.1+** (Bun is the primary runtime in this repo â€” the seed script and the production `start` script both use it)
-- A `JWT_SECRET` â€” any random hex string of **at least 16 characters** (see below)
+- **Node.js 20+** or **Bun 1.1+** (Bun is the primary runtime in this repo — the seed script and the production `start` script both use it)
+- A `JWT_SECRET` — any random hex string of **at least 16 characters** (see below)
 
 ### Setup
 
@@ -155,17 +155,17 @@ bun run start          # Serve the standalone build (NODE_ENV=production)
 
 | Variable | Required | Description |
 | --- | --- | --- |
-| `DATABASE_URL` | Yes | SQLite (default, local): `file:/home/z/my-project/db/custom.db` â€” PostgreSQL (production): `postgresql://user:pass@host:5432/school_mgmt` |
+| `DATABASE_URL` | Yes | SQLite (default, local): `file:/home/z/my-project/db/custom.db` — PostgreSQL (production): `postgresql://user:pass@host:5432/school_mgmt` |
 | `JWT_SECRET` | Yes | Secret used to sign JWTs. Minimum **16 characters**; generate one with `openssl rand -hex 32`. API calls fail with a `500` if it is missing or too short. |
 | `NODE_ENV` | No | `development` (default) or `production`. In production the session cookie is marked `secure`. |
 
 ## Demo Accounts
 
-The seed script (`bun run db:seed`) creates a complete demo dataset â€” **5 courses, 45 enrollments, 450 attendance records across 10 weekdays, and 135 grades** (three assessments per enrollment: *CAT 1* /20, *Midterm Exam* /50, *End-Term Exam* /100).
+The seed script (`bun run db:seed`) creates a complete demo dataset — **5 courses, 45 enrollments, 450 attendance records across 10 weekdays, and 135 grades** (three assessments per enrollment: *CAT 1* /20, *Midterm Exam* /50, *End-Term Exam* /100).
 
 | Email | Password | Role | Notes |
 | --- | --- | --- | --- |
-| `admin@school.edu` | `Admin123!` | ADMIN | kebena â€” full access |
+| `admin@school.edu` | `Admin123!` | ADMIN | kebena — full access |
 | `grace.mwangi@school.edu` | `Teacher123!` | TEACHER | Teaches Mathematics & Chemistry |
 | `david.ochieng@school.edu` | `Teacher123!` | TEACHER | English Literature & History & Government |
 | `fatima.hassan@school.edu` | `Teacher123!` | TEACHER | Physics |
@@ -175,7 +175,7 @@ The seed script (`bun run db:seed`) creates a complete demo dataset â€” **5
 
 **Authentication:** send the JWT either as the `httpOnly` cookie `school_session` (set automatically by `POST /api/auth/login`) or as an `Authorization: Bearer <token>` header. Unauthenticated requests get `401`; insufficient role gets `403`.
 
-**Error format:** all errors are JSON â€” `{ "message": "â€¦", "details": [{ "path": "â€¦", "message": "â€¦" }] }` (`details` is optional and present on validation errors).
+**Error format:** all errors are JSON — `{ "message": "…", "details": [{ "path": "…", "message": "…" }] }` (`details` is optional and present on validation errors).
 
 | Method & Path | Role required | Description |
 | --- | --- | --- |
@@ -196,11 +196,11 @@ The seed script (`bun run db:seed`) creates a complete demo dataset â€” **5
 | `GET /api/courses/:id` | ADMIN or owning TEACHER | Course detail + roster |
 | `PUT /api/courses/:id` | ADMIN | Update course / reassign teacher |
 | `DELETE /api/courses/:id` | ADMIN | Delete course (cascades enrollments) |
-| `GET /api/courses/:id/students` | ADMIN or owning TEACHER | Course roster (`?scope=unenrolled` â€” ADMIN â€” lists students available to enroll) |
+| `GET /api/courses/:id/students` | ADMIN or owning TEACHER | Course roster (`?scope=unenrolled` — ADMIN — lists students available to enroll) |
 | `POST /api/courses/:id/students` | ADMIN | Enroll a student (`{ studentId }`) |
 | `DELETE /api/courses/:id/students/:studentId` | ADMIN | Unenroll a student |
 | `GET /api/attendance?courseId=&date=` | ADMIN or owning TEACHER | Attendance register sheet for course + date |
-| `POST /api/attendance` | ADMIN or owning TEACHER | Bulk save the register (`{ courseId, date, records: [{ enrollmentId, status }] }`) â€” upsert, duplicate-safe |
+| `POST /api/attendance` | ADMIN or owning TEACHER | Bulk save the register (`{ courseId, date, records: [{ enrollmentId, status }] }`) — upsert, duplicate-safe |
 | `GET /api/attendance/me` | STUDENT | Own attendance summary + per-course breakdown |
 | `GET /api/grades?courseId=` | ADMIN or owning TEACHER | Grade book for a course |
 | `POST /api/grades` | ADMIN or owning TEACHER | Add an assessment grade (`{ enrollmentId, assessmentName, score, maxScore }`) |
@@ -235,13 +235,13 @@ SQLite is perfect for local development, but production deployments should use P
    bunx prisma migrate dev --name init
    ```
 
-4. Seed the database â€” the seed script uses plain Prisma calls and works unchanged on both engines:
+4. Seed the database — the seed script uses plain Prisma calls and works unchanged on both engines:
 
    ```bash
    bun run db:seed
    ```
 
-Optionally, convert the `role` / `status` string columns to native PostgreSQL **enums** â€” the exact variant is documented in the comments of `prisma/schema.prisma` (SQLite has no enum type, which is why the application layer validates these values).
+Optionally, convert the `role` / `status` string columns to native PostgreSQL **enums** — the exact variant is documented in the comments of `prisma/schema.prisma` (SQLite has no enum type, which is why the application layer validates these values).
 
 ## Deployment
 
@@ -250,10 +250,10 @@ Optionally, convert the `role` / `status` string columns to native PostgreSQL **
 1. Create a new **Web Service** from the repository.
 2. Set the commands:
    - **Build:** `bun install && bunx prisma generate && bunx prisma migrate deploy`
-   - **Start:** `npm run build && npm run start` â€” the `start` script in `package.json` launches the standalone Next.js server (`bun .next/standalone/server.js`). Alternatively use `next build && next start` directly.
+   - **Start:** `npm run build && npm run start` — the `start` script in `package.json` launches the standalone Next.js server (`bun .next/standalone/server.js`). Alternatively use `next build && next start` directly.
 3. Add environment variables:
-   - `DATABASE_URL` â€” the **Render PostgreSQL internal URL** (`postgresql://â€¦` â€” remember to switch the Prisma provider to `postgresql` as described above)
-   - `JWT_SECRET` â€” a fresh `openssl rand -hex 32` value
+   - `DATABASE_URL` — the **Render PostgreSQL internal URL** (`postgresql://…` — remember to switch the Prisma provider to `postgresql` as described above)
+   - `JWT_SECRET` — a fresh `openssl rand -hex 32` value
    - `NODE_ENV=production`
 4. Run the seed once from the Render shell so the demo accounts exist:
 
@@ -283,13 +283,13 @@ The layered `src/server` design makes the API straightforward to test with Jest 
 1. Install the toolchain: `jest`, `ts-jest`, `@types/jest`, `supertest`, `@types/supertest`.
 2. Add a Jest config with `ts-jest` (preset `ts-jest`) pointing at a `tests/` directory, and a test DB URL (e.g. a separate SQLite file or a throwaway Postgres schema) so tests never touch dev data.
 3. Because routes live in Next.js App Router modules, the practical pattern is to boot the handlers through a tiny harness (or run `next dev` on a test port and point Supertest's `request` at `http://localhost:<port>`), then cover at minimum:
-   - `POST /api/auth/login` â€” happy path sets the `school_session` cookie; wrong password returns `401`.
-   - `GET /api/students` as a STUDENT/TEACHER token â€” returns **403** (RBAC enforced server-side).
-   - `POST /api/attendance` twice for the same course + date â€” the second save **upserts** (no duplicate rows; a raw duplicate insert hits the unique constraint â†’ `409`).
+   - `POST /api/auth/login` — happy path sets the `school_session` cookie; wrong password returns `401`.
+   - `GET /api/students` as a STUDENT/TEACHER token — returns **403** (RBAC enforced server-side).
+   - `POST /api/attendance` twice for the same course + date — the second save **upserts** (no duplicate rows; a raw duplicate insert hits the unique constraint → `409`).
 4. Run with `npx jest`.
 
 No test files are included in this repository.
 
 ## License
 
-This project is released under the **MIT License** â€” free to use, modify and distribute.
+This project is for portfolio and demonstration purposes. Contact me before reusing it.
