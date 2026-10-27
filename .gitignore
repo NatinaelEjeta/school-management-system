@@ -55,3 +55,8 @@ server.log
 .env
 *.db
 dev.log
+
+env.txt
+*.env
+.env.*
+!.env.example
