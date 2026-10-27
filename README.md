@@ -1,5 +1,13 @@
 # Nejo preparatory School Academy — School Management System
 
+   ## Screenshots
+
+   ![Login](screenshots/login.png)
+   ![Admin dashboard](screenshots/dashboard.png)
+   ![Students](screenshots/students.png)
+   ![Attendance](screenshots/attendance.png)
+   ![Grades](screenshots/grades.png)
+
 A full-stack, role-based school management web application. One codebase ships the UI **and** the REST API: admins manage students, teachers and courses; teachers keep an attendance register and a grade book; students get a personal portal with per-course averages, attendance history and a downloadable PDF report card.
 
 Every request is authenticated with JWT and authorized **on the server** — the client role is never trusted.
