@@ -1,5 +1,5 @@
 /**
- * Seed script for the Greenfield Academy School Management System.
+ * Seed script for the Nejo preparatory School Academy School Management System.
  *
  * Creates: 1 admin, 3 teachers, 15 students, 5 courses,
  * 45 enrollments, sample attendance (last 10 weekdays) and grades.
@@ -87,7 +87,7 @@ async function main(): Promise<void> {
 
   console.log('Creating users...')
   await db.user.create({
-    data: { name: 'Amina Baraka', email: 'admin@school.edu', passwordHash: hash(ADMIN_PASSWORD), role: 'ADMIN' },
+    data: { name: 'kebena', email: 'admin@school.edu', passwordHash: hash(ADMIN_PASSWORD), role: 'ADMIN' },
   })
   console.log('  admin@school.edu (ADMIN)')
 

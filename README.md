@@ -1,4 +1,4 @@
-# Greenfield Academy — School Management System
+# Nejo preparatory School Academy — School Management System
 
 A full-stack, role-based school management web application. One codebase ships the UI **and** the REST API: admins manage students, teachers and courses; teachers keep an attendance register and a grade book; students get a personal portal with per-course averages, attendance history and a downloadable PDF report card.
 
@@ -157,7 +157,7 @@ The seed script (`bun run db:seed`) creates a complete demo dataset — **5 cour
 
 | Email | Password | Role | Notes |
 | --- | --- | --- | --- |
-| `admin@school.edu` | `Admin123!` | ADMIN | Amina Baraka — full access |
+| `admin@school.edu` | `Admin123!` | ADMIN | kebena — full access |
 | `grace.mwangi@school.edu` | `Teacher123!` | TEACHER | Teaches Mathematics & Chemistry |
 | `david.ochieng@school.edu` | `Teacher123!` | TEACHER | English Literature & History & Government |
 | `fatima.hassan@school.edu` | `Teacher123!` | TEACHER | Physics |

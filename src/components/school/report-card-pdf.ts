@@ -29,7 +29,7 @@ export async function downloadReportCardPdf(report: ReportCard): Promise<void> {
   doc.setTextColor(255, 255, 255)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(19)
-  doc.text('Greenfield Academy', 14, 14)
+  doc.text('Nejo preparatory School Academy', 14, 14)
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(11)
   doc.text('Student Report Card', 14, 21)

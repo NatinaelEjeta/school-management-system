@@ -72,7 +72,7 @@ export function LoginView({ onSuccess }: { onSuccess: (user: AuthUser) => void }
                   <SchoolIcon className="h-6 w-6" />
                 </div>
                 <div>
-                  <p className="text-lg font-semibold leading-tight">Greenfield Academy</p>
+                  <p className="text-lg font-semibold leading-tight">Nejo preparatory School Academy</p>
                   <p className="text-xs text-emerald-100">School Management System</p>
                 </div>
               </div>
@@ -93,7 +93,7 @@ export function LoginView({ onSuccess }: { onSuccess: (user: AuthUser) => void }
                 ))}
               </ul>
             </div>
-            <p className="text-xs text-emerald-100/80">© {new Date().getFullYear()} Greenfield Academy. All rights reserved.</p>
+            <p className="text-xs text-emerald-100/80">© {new Date().getFullYear()} Nejo preparatory School Academy. All rights reserved.</p>
           </div>
 
           {/* Sign-in form */}
@@ -103,7 +103,7 @@ export function LoginView({ onSuccess }: { onSuccess: (user: AuthUser) => void }
                 <SchoolIcon className="h-5 w-5 text-white" />
               </div>
               <div>
-                <p className="font-semibold leading-tight">Greenfield Academy</p>
+                <p className="font-semibold leading-tight">Nejo preparatory School Academy</p>
                 <p className="text-xs text-muted-foreground">School Management System</p>
               </div>
             </div>
@@ -181,7 +181,7 @@ export function LoginView({ onSuccess }: { onSuccess: (user: AuthUser) => void }
       </main>
 
       <footer className="mt-auto border-t bg-card px-4 py-4 text-center text-xs text-muted-foreground">
-        Greenfield Academy — School Management System
+        Nejo preparatory School Academy — School Management System
       </footer>
     </div>
   )

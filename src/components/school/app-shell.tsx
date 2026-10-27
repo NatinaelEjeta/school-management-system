@@ -169,7 +169,7 @@ export function AppShell({ user, onLogout }: { user: AuthUser; onLogout: () => v
               <SchoolIcon className="h-5 w-5 text-white" />
             </div>
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold leading-tight">Greenfield Academy</p>
+              <p className="truncate text-sm font-semibold leading-tight">Nejo preparatory School Academy</p>
               <p className="text-[11px] text-muted-foreground">School Management</p>
             </div>
           </div>
@@ -206,7 +206,7 @@ export function AppShell({ user, onLogout }: { user: AuthUser; onLogout: () => v
                     <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-600">
                       <SchoolIcon className="h-4.5 w-4.5 text-white" />
                     </div>
-                    <span className="text-sm font-semibold">Greenfield Academy</span>
+                    <span className="text-sm font-semibold">Nejo preparatory School Academy</span>
                   </SheetTitle>
                 </SheetHeader>
                 <nav className="space-y-1 p-3" aria-label="Mobile navigation">
@@ -254,7 +254,7 @@ export function AppShell({ user, onLogout }: { user: AuthUser; onLogout: () => v
           </main>
 
           <footer className="mt-auto border-t bg-card px-4 py-4 text-center text-xs text-muted-foreground sm:px-6">
-            Greenfield Academy — School Management System · Signed in as {user.name}
+            Nejo preparatory School Academy — School Management System · Signed in as {user.name}
           </footer>
         </div>
       </div>

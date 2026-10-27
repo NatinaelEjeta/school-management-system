@@ -15,7 +15,7 @@ function BootSplash() {
       <div className="flex h-14 w-14 animate-pulse items-center justify-center rounded-2xl bg-emerald-600">
         <SchoolIcon className="h-7 w-7 text-white" />
       </div>
-      <p className="text-sm text-muted-foreground">Loading Greenfield Academy…</p>
+      <p className="text-sm text-muted-foreground">Loading Nejo preparatory School Academy…</p>
     </div>
   )
 }
