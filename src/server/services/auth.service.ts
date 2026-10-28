@@ -33,8 +33,9 @@ export async function changePassword(
   currentPassword: string,
   newPassword: string,
 ): Promise<void> {
-  const user = await db.user.findUnique({ where: { id: userId }, select: { passwordHash: true } })
+  const user = await db.user.findUnique({ where: { id: userId }, select: { passwordHash: true, email: true } })
   if (!user) throw new ApiError(401, 'This account no longer exists.')
+  if (user.email.endsWith('@school.edu')) throw new ApiError(403, 'Demo accounts cannot change their password.')
 
   const matches = await bcrypt.compare(currentPassword, user.passwordHash)
   if (!matches) throw new ApiError(400, 'Current password is incorrect.')

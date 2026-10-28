@@ -9,6 +9,7 @@ import {
   FileText,
   GraduationCap,
   LayoutDashboard,
+  KeyRound,
   LogOut,
   Menu,
   School as SchoolIcon,
@@ -30,6 +31,7 @@ import { CourseDetailView } from './course-detail-view'
 import { MyGradesView } from './my-grades-view'
 import { MyAttendanceView } from './my-attendance-view'
 import { ReportCardView } from './report-card-view'
+import { ChangePasswordDialog } from './change-password-dialog'
 
 export type View =
   | 'dashboard'
@@ -80,6 +82,7 @@ export function AppShell({ user, onLogout }: { user: AuthUser; onLogout: () => v
   const [activeCourseId, setActiveCourseId] = React.useState<number | null>(null)
   const [mobileNavOpen, setMobileNavOpen] = React.useState(false)
   const [loggingOut, setLoggingOut] = React.useState(false)
+  const [passwordOpen, setPasswordOpen] = React.useState(false)
 
   const navItems = NAV_BY_ROLE[user.role]
 
@@ -161,6 +164,7 @@ export function AppShell({ user, onLogout }: { user: AuthUser; onLogout: () => v
 
   return (
     <div className="flex min-h-screen flex-col bg-muted/40">
+      <ChangePasswordDialog open={passwordOpen} onOpenChange={setPasswordOpen} />
       <div className="flex flex-1">
         {/* Desktop sidebar */}
         <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r bg-card lg:flex">
@@ -236,6 +240,9 @@ export function AppShell({ user, onLogout }: { user: AuthUser; onLogout: () => v
               <AvatarInitials name={user.name} className="h-8 w-8" />
             </div>
 
+            <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Change password" title="Change password" onClick={() => setPasswordOpen(true)}>
+              <KeyRound className="h-4 w-4" />
+            </Button>
             <ThemeToggle />
             <Button
               variant="ghost"
