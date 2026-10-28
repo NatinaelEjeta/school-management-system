@@ -27,3 +27,20 @@ export async function login(email: string, password: string): Promise<LoginRespo
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 10)
 }
+
+export async function changePassword(
+  userId: number,
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  const user = await db.user.findUnique({ where: { id: userId }, select: { passwordHash: true } })
+  if (!user) throw new ApiError(401, 'This account no longer exists.')
+
+  const matches = await bcrypt.compare(currentPassword, user.passwordHash)
+  if (!matches) throw new ApiError(400, 'Current password is incorrect.')
+
+  await db.user.update({
+    where: { id: userId },
+    data: { passwordHash: await hashPassword(newPassword) },
+  })
+}

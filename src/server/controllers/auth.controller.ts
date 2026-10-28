@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { loginSchema } from '@/server/validation'
-import { login } from '@/server/services/auth.service'
+import { loginSchema, changePasswordSchema } from '@/server/validation'
+import { login, changePassword } from '@/server/services/auth.service'
 import { authenticate } from '@/server/middleware/auth'
 import { readJsonBody } from '@/server/http'
 import { AUTH_COOKIE, AUTH_COOKIE_OPTIONS } from '@/server/auth/tokens'
@@ -26,4 +26,12 @@ export function handleLogout(): NextResponse<{ message: string }> {
 export async function handleMe(req: NextRequest): Promise<NextResponse> {
   const user = await authenticate(req)
   return NextResponse.json(user)
+}
+
+/** POST /api/auth/change-password: verify the current password, then store a new hash. */
+export async function handleChangePassword(req: NextRequest): Promise<NextResponse<{ message: string }>> {
+  const user = await authenticate(req)
+  const input = changePasswordSchema.parse(await readJsonBody(req))
+  await changePassword(user.id, input.currentPassword, input.newPassword)
+  return NextResponse.json({ message: 'Password changed successfully.' })
 }
