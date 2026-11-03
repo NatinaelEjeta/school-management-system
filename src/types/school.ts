@@ -7,6 +7,10 @@ export const ROLES: Role[] = ['ADMIN', 'TEACHER', 'STUDENT']
 export const ATTENDANCE_STATUSES: AttendanceStatus[] = ['PRESENT', 'ABSENT', 'LATE']
 export const GRADE_LEVELS = ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'] as const
 
+/** Age limits enforced when a student is registered (whole years). */
+export const MIN_STUDENT_AGE = 3
+export const MAX_STUDENT_AGE = 25
+
 export interface AuthUser {
   id: number
   name: string
@@ -29,6 +33,12 @@ export interface StudentDto {
   gradeLevel: string
   dateOfBirth: string | null
   enrollmentCount: number
+  studentCode: string
+  classId: number | null
+  className: string | null
+  familyId: number | null
+  familyCode: string | null
+  familyName: string | null
   createdAt: string
 }
 
@@ -46,6 +56,8 @@ export interface TeacherDto {
   name: string
   email: string
   courseCount: number
+  teacherCode: string
+  classCount: number
   createdAt: string
 }
 
@@ -178,4 +190,26 @@ export interface ReportCard {
 export interface ApiErrorBody {
   message: string
   details?: { path: string; message: string }[]
+}
+
+export interface ClassDto {
+  id: number
+  name: string
+  gradeLevel: string
+  homeroomTeacherId: number | null
+  homeroomTeacherName: string | null
+  studentCount: number
+}
+
+export interface FamilyDto {
+  id: number
+  familyCode: string
+  familyName: string
+  guardianName: string
+  guardianPhone: string
+  guardianEmail: string | null
+  address: string | null
+  studentCount: number
+  students: { id: number; studentCode: string; name: string; gradeLevel: string }[]
+  createdAt: string
 }

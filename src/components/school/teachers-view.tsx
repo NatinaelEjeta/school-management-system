@@ -96,7 +96,7 @@ export function TeachersView() {
         <div className="relative w-full sm:max-w-xs">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search teachers…"
+            placeholder="Search by name, email or teacher ID…"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             className="pl-9"
@@ -150,8 +150,10 @@ export function TeachersView() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Teacher ID</TableHead>
                   <TableHead>Teacher</TableHead>
                   <TableHead className="hidden sm:table-cell">Courses</TableHead>
+                  <TableHead className="hidden sm:table-cell">Classes</TableHead>
                   <TableHead className="hidden lg:table-cell">Joined</TableHead>
                   <TableHead className="w-12 text-right">Actions</TableHead>
                 </TableRow>
@@ -159,6 +161,7 @@ export function TeachersView() {
               <TableBody>
                 {teachers.map((teacher) => (
                   <TableRow key={teacher.id}>
+                    <TableCell className="font-mono text-xs">{teacher.teacherCode}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <AvatarInitials name={teacher.name} />
@@ -169,6 +172,7 @@ export function TeachersView() {
                       </div>
                     </TableCell>
                     <TableCell className="hidden sm:table-cell text-sm tabular-nums">{teacher.courseCount}</TableCell>
+                    <TableCell className="hidden sm:table-cell text-sm tabular-nums">{teacher.classCount}</TableCell>
                     <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">{formatDate(teacher.createdAt)}</TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>

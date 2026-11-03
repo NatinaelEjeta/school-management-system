@@ -122,7 +122,7 @@ export async function getEnrollableStudents(courseId: number): Promise<StudentDt
 
   const students = await db.student.findMany({
     where: { NOT: { enrollments: { some: { courseId } } } },
-    include: { user: true, _count: { select: { enrollments: true } } },
+    include: { user: true, schoolClass: true, family: true, _count: { select: { enrollments: true } } },
     orderBy: { user: { name: 'asc' } },
     take: 200,
   })
@@ -135,6 +135,12 @@ export async function getEnrollableStudents(courseId: number): Promise<StudentDt
     gradeLevel: student.gradeLevel,
     dateOfBirth: student.dateOfBirth,
     enrollmentCount: student._count.enrollments,
+    studentCode: student.studentCode,
+    classId: student.classId,
+    className: student.schoolClass?.name ?? null,
+    familyId: student.familyId,
+    familyCode: student.family?.familyCode ?? null,
+    familyName: student.family?.familyName ?? null,
     createdAt: student.user.createdAt.toISOString(),
   }))
 }

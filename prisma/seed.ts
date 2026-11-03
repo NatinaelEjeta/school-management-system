@@ -79,6 +79,8 @@ async function main(): Promise<void> {
     db.enrollment.deleteMany(),
     db.course.deleteMany(),
     db.student.deleteMany(),
+    db.schoolClass.deleteMany(),
+    db.family.deleteMany(),
     db.teacher.deleteMany(),
     db.user.deleteMany(),
   ])
@@ -91,23 +93,74 @@ async function main(): Promise<void> {
   })
   console.log('  admin@school.edu (ADMIN)')
 
-  const teachers = []
+  const codeYear = new Date().getUTCFullYear()
+  const teachers: { id: number }[] = []
   for (const t of teachersData) {
     teachers.push(
       await db.teacher.create({
-        data: { user: { create: { name: t.name, email: t.email, passwordHash: hash(TEACHER_PASSWORD), role: 'TEACHER' } } },
+        data: {
+          teacherCode: 'TCH-' + codeYear + '-' + String(teachers.length + 1).padStart(3, '0'),
+          user: { create: { name: t.name, email: t.email, passwordHash: hash(TEACHER_PASSWORD), role: 'TEACHER' } },
+        },
       }),
     )
   }
   console.log(`  ${teachers.length} teachers`)
 
-  const students = []
+  const classRows = [
+    { name: '9-A', gradeLevel: 'Grade 9', homeroomTeacherId: teachers[0].id },
+    { name: '10-A', gradeLevel: 'Grade 10', homeroomTeacherId: teachers[1].id },
+    { name: '11-A', gradeLevel: 'Grade 11', homeroomTeacherId: teachers[2].id },
+    { name: '12-A', gradeLevel: 'Grade 12', homeroomTeacherId: teachers[0].id },
+  ]
+  const classByGrade = new Map<string, number>()
+  for (const c of classRows) {
+    const created = await db.schoolClass.create({ data: c })
+    classByGrade.set(c.gradeLevel, created.id)
+  }
+  console.log('  ' + classRows.length + ' classes')
+
+  const familyDefs = [
+    { familyName: 'Otieno-Barasa Family', guardianName: 'Joseph Otieno' },
+    { familyName: 'Wanjiru-Chebet Family', guardianName: 'Grace Wanjiru' },
+    { familyName: 'Kiprop-Abdi Family', guardianName: 'Paul Kiprop' },
+    { familyName: 'Mohammed Family', guardianName: 'Amina Mohammed' },
+    { familyName: 'Kamau Family', guardianName: 'John Kamau' },
+    { familyName: 'Achieng Family', guardianName: 'Rose Achieng' },
+    { familyName: 'Njoroge Family', guardianName: 'Mark Njoroge' },
+    { familyName: 'Chelimo Family', guardianName: 'Ruth Chelimo' },
+    { familyName: 'Mutiso Family', guardianName: 'James Mutiso' },
+    { familyName: 'Yusuf Family', guardianName: 'Halima Yusuf' },
+    { familyName: 'Kariuki Family', guardianName: 'Simon Kariuki' },
+    { familyName: 'Nduta Family', guardianName: 'Esther Nduta' },
+  ]
+  const familyIds: number[] = []
+  for (let i = 0; i < familyDefs.length; i++) {
+    const created = await db.family.create({
+      data: {
+        familyCode: 'FAM-' + codeYear + '-' + String(i + 1).padStart(4, '0'),
+        familyName: familyDefs[i].familyName,
+        guardianName: familyDefs[i].guardianName,
+        guardianPhone: '+2519110' + String(i + 1).padStart(5, '0'),
+        address: 'Addis Ababa',
+      },
+    })
+    familyIds.push(created.id)
+  }
+  // Student index to family index: the last three students are siblings of the first three.
+  const familyOfStudent = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1, 2]
+  console.log('  ' + familyDefs.length + ' families')
+
+  const students: { id: number }[] = []
   for (const s of studentsData) {
     students.push(
       await db.student.create({
         data: {
+          studentCode: 'STU-' + codeYear + '-' + String(students.length + 1).padStart(4, '0'),
+          family: { connect: { id: familyIds[familyOfStudent[students.length]] } },
           gradeLevel: s.gradeLevel,
           dateOfBirth: s.dateOfBirth,
+          ...(classByGrade.has(s.gradeLevel) ? { schoolClass: { connect: { id: classByGrade.get(s.gradeLevel) as number } } } : {}),
           user: { create: { name: s.name, email: emailFor(s.name), passwordHash: hash(STUDENT_PASSWORD), role: 'STUDENT' } },
         },
       }),
@@ -123,7 +176,7 @@ async function main(): Promise<void> {
     { name: 'Chemistry', teacherId: teachers[0].id },
     { name: 'History & Government', teacherId: teachers[1].id },
   ]
-  const courses = []
+  const courses: { id: number }[] = []
   for (const c of coursesData) {
     courses.push(await db.course.create({ data: c }))
   }

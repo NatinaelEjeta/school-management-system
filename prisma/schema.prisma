@@ -33,15 +33,25 @@ model Student {
   gradeLevel  String
   dateOfBirth String? // YYYY-MM-DD
   enrollments Enrollment[]
+  studentCode String       @unique
+  classId     Int?
+  schoolClass SchoolClass? @relation(fields: [classId], references: [id], onDelete: SetNull)
+
+  familyId Int?
+  family   Family? @relation(fields: [familyId], references: [id], onDelete: SetNull)
 
   @@index([gradeLevel])
+  @@index([familyId])
+  @@index([classId])
 }
 
 model Teacher {
-  id      Int      @id @default(autoincrement())
-  userId  Int      @unique
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  courses Course[]
+  id              Int           @id @default(autoincrement())
+  userId          Int           @unique
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courses         Course[]
+  teacherCode     String        @unique
+  homeroomClasses SchoolClass[]
 }
 
 model Course {
@@ -56,14 +66,14 @@ model Course {
 }
 
 model Enrollment {
-  id         Int      @id @default(autoincrement())
+  id         Int          @id @default(autoincrement())
   studentId  Int
   courseId   Int
-  student    Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  course     Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  student    Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  course     Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
   attendance Attendance[]
   grades     Grade[]
-  createdAt  DateTime   @default(now())
+  createdAt  DateTime     @default(now())
 
   @@unique([studentId, courseId])
   @@index([courseId])
@@ -92,4 +102,30 @@ model Grade {
   enrollment     Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
 
   @@index([enrollmentId])
+}
+
+model SchoolClass {
+  id                Int       @id @default(autoincrement())
+  name              String    @unique
+  gradeLevel        String
+  homeroomTeacherId Int?
+  homeroomTeacher   Teacher?  @relation(fields: [homeroomTeacherId], references: [id], onDelete: SetNull)
+  createdAt         DateTime  @default(now())
+  students          Student[]
+
+  @@index([homeroomTeacherId])
+}
+
+model Family {
+  id            Int       @id @default(autoincrement())
+  familyCode    String    @unique
+  familyName    String
+  guardianName  String
+  guardianPhone String
+  guardianEmail String?
+  address       String?
+  createdAt     DateTime  @default(now())
+  students      Student[]
+
+  @@index([familyName])
 }

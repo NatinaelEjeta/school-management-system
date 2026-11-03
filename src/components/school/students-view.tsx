@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useToast } from '@/hooks/use-toast'
 import { api, ApiClientError, buildQueryString } from '@/lib/api-client'
-import { GRADE_LEVELS, type StudentDto, type StudentListResponse } from '@/types/school'
+import { GRADE_LEVELS, MAX_STUDENT_AGE, MIN_STUDENT_AGE, type ClassDto, type FamilyDto, type StudentDto, type StudentListResponse } from '@/types/school'
 import { AvatarInitials, EmptyState, ErrorAlert, formatDate, TableSkeleton } from './shared'
 import { downloadReportCardPdf } from './report-card-pdf'
 
@@ -24,6 +24,8 @@ interface StudentFormValues {
   password: string
   gradeLevel: string
   dateOfBirth: string
+  classId: string
+  familyId: string
 }
 
 const PAGE_SIZE = 8
@@ -65,6 +67,8 @@ export function StudentsView() {
         email: values.email,
         gradeLevel: values.gradeLevel,
         dateOfBirth: values.dateOfBirth === '' ? null : values.dateOfBirth,
+        classId: values.classId === 'none' ? null : Number(values.classId),
+        familyId: values.familyId === 'none' ? null : Number(values.familyId),
         ...(values.password !== '' ? { password: values.password } : {}),
       }
       if (editing) return api.put<StudentDto>(`/api/students/${editing.id}`, payload)
@@ -142,7 +146,7 @@ export function StudentsView() {
         <div className="relative w-full sm:max-w-xs">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search by name, email or grade…"
+            placeholder="Search by name, email, grade or student ID…"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             className="pl-9"
@@ -197,9 +201,12 @@ export function StudentsView() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Student ID</TableHead>
                     <TableHead>Student</TableHead>
                     <TableHead className="hidden md:table-cell">Grade level</TableHead>
                     <TableHead className="hidden lg:table-cell">Date of birth</TableHead>
+                    <TableHead className="hidden lg:table-cell">Family</TableHead>
+                    <TableHead className="hidden sm:table-cell">Class</TableHead>
                     <TableHead className="hidden sm:table-cell">Courses</TableHead>
                     <TableHead className="hidden xl:table-cell">Joined</TableHead>
                     <TableHead className="w-12 text-right">Actions</TableHead>
@@ -208,6 +215,7 @@ export function StudentsView() {
                 <TableBody>
                   {data.students.map((student) => (
                     <TableRow key={student.id}>
+                      <TableCell className="font-mono text-xs">{student.studentCode}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <AvatarInitials name={student.name} />
@@ -223,6 +231,8 @@ export function StudentsView() {
                       <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
                         {formatDate(student.dateOfBirth)}
                       </TableCell>
+                      <TableCell className="hidden lg:table-cell text-sm">{student.familyName ?? '-'}</TableCell>
+                      <TableCell className="hidden sm:table-cell text-sm">{student.className ?? '-'}</TableCell>
                       <TableCell className="hidden sm:table-cell text-sm tabular-nums">{student.enrollmentCount}</TableCell>
                       <TableCell className="hidden xl:table-cell text-sm text-muted-foreground">{formatDate(student.createdAt)}</TableCell>
                       <TableCell className="text-right">
@@ -347,8 +357,20 @@ function StudentFormDialog({
     password: '',
     gradeLevel: 'Grade 9',
     dateOfBirth: '',
+    classId: 'none',
+    familyId: 'none',
   })
   const [fieldErrors, setFieldErrors] = React.useState<Partial<Record<keyof StudentFormValues, string>>>({})
+  const familiesQuery = useQuery({
+    queryKey: ['families'],
+    queryFn: () => api.get<FamilyDto[]>('/api/families'),
+    enabled: open,
+  })
+  const classesQuery = useQuery({
+    queryKey: ['classes'],
+    queryFn: () => api.get<ClassDto[]>('/api/classes'),
+    enabled: open,
+  })
 
   React.useEffect(() => {
     if (open) {
@@ -358,6 +380,8 @@ function StudentFormDialog({
         password: '',
         gradeLevel: editing?.gradeLevel ?? 'Grade 9',
         dateOfBirth: editing?.dateOfBirth ?? '',
+        classId: editing?.classId != null ? String(editing.classId) : 'none',
+        familyId: editing?.familyId != null ? String(editing.familyId) : 'none',
       })
       setFieldErrors({})
     }
@@ -371,6 +395,17 @@ function StudentFormDialog({
     if (!editing && values.password.length < 8) errors.password = 'Password must be at least 8 characters.'
     if (editing && values.password !== '' && values.password.length < 8) errors.password = 'Password must be at least 8 characters.'
     if (!values.gradeLevel) errors.gradeLevel = 'Choose a grade level.'
+    if (values.dateOfBirth === '') {
+      if (!editing) errors.dateOfBirth = 'Date of birth is required.'
+    } else {
+      const [by, bm, bd] = values.dateOfBirth.split('-').map(Number)
+      const now = new Date()
+      let age = now.getUTCFullYear() - by
+      if (now.getUTCMonth() + 1 < bm || (now.getUTCMonth() + 1 === bm && now.getUTCDate() < bd)) age -= 1
+      if (values.dateOfBirth > now.toISOString().slice(0, 10)) errors.dateOfBirth = 'Date of birth cannot be in the future.'
+      else if (age < MIN_STUDENT_AGE) errors.dateOfBirth = 'Student must be at least ' + MIN_STUDENT_AGE + ' years old.'
+      else if (age > MAX_STUDENT_AGE) errors.dateOfBirth = 'Student must be at most ' + MAX_STUDENT_AGE + ' years old.'
+    }
     setFieldErrors(errors)
     if (Object.keys(errors).length > 0) return
     onSubmit(values)
@@ -436,8 +471,10 @@ function StudentFormDialog({
                 id="student-dob"
                 type="date"
                 value={values.dateOfBirth}
+                max={new Date().toISOString().slice(0, 10)}
                 onChange={(e) => setValues((v) => ({ ...v, dateOfBirth: e.target.value }))}
               />
+                {fieldErrors.dateOfBirth ? <p className="text-xs text-destructive">{fieldErrors.dateOfBirth}</p> : null}
             </div>
 
             <div className="space-y-2 sm:col-span-2">
@@ -451,6 +488,40 @@ function StudentFormDialog({
                 placeholder={editing ? 'Leave blank to keep current password' : 'At least 8 characters'}
               />
               {fieldErrors.password ? <p className="text-xs text-destructive">{fieldErrors.password}</p> : null}
+            </div>
+
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="student-family">Family (optional)</Label>
+              <Select value={values.familyId} onValueChange={(familyId) => setValues((v) => ({ ...v, familyId }))}>
+                <SelectTrigger id="student-family">
+                  <SelectValue placeholder="No family" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No family</SelectItem>
+                  {(familiesQuery.data ?? []).map((fam) => (
+                    <SelectItem key={fam.id} value={String(fam.id)}>
+                      {fam.familyName} ({fam.familyCode})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="student-class">Class (optional)</Label>
+              <Select value={values.classId} onValueChange={(classId) => setValues((v) => ({ ...v, classId }))}>
+                <SelectTrigger id="student-class">
+                  <SelectValue placeholder="No class" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No class</SelectItem>
+                  {(classesQuery.data ?? []).map((c) => (
+                    <SelectItem key={c.id} value={String(c.id)}>
+                      {c.name} ({c.gradeLevel})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

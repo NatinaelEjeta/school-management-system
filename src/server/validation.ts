@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { MIN_STUDENT_AGE, MAX_STUDENT_AGE } from '@/types/school'
 
 const emailSchema = z
   .string()
@@ -14,6 +15,25 @@ const passwordSchema = z
 
 const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must use the YYYY-MM-DD format')
 
+/** Age in whole years on a given day (compared in UTC). */
+export function ageInYears(birthDate: string, today: Date = new Date()): number {
+  const [y, m, d] = birthDate.split('-').map(Number)
+  let age = today.getUTCFullYear() - y
+  const month = today.getUTCMonth() + 1
+  if (month < m || (month === m && today.getUTCDate() < d)) age -= 1
+  return age
+}
+
+const birthDateSchema = dateSchema
+  .refine((value) => {
+    const [y, m, d] = value.split('-').map(Number)
+    const parsed = new Date(Date.UTC(y, m - 1, d))
+    return parsed.getUTCFullYear() === y && parsed.getUTCMonth() === m - 1 && parsed.getUTCDate() === d
+  }, 'Enter a real calendar date')
+  .refine((value) => value <= new Date().toISOString().slice(0, 10), 'Date of birth cannot be in the future')
+  .refine((value) => ageInYears(value) >= MIN_STUDENT_AGE, 'Student must be at least ' + MIN_STUDENT_AGE + ' years old')
+  .refine((value) => ageInYears(value) <= MAX_STUDENT_AGE, 'Student must be at most ' + MAX_STUDENT_AGE + ' years old')
+
 const idSchema = z.number().int('Must be a whole number').positive('Must be a positive number')
 
 const nameSchema = z.string().trim().min(2, 'Name must be at least 2 characters').max(80, 'Name is too long')
@@ -28,7 +48,9 @@ export const studentCreateSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
   gradeLevel: z.string().trim().min(1, 'Grade level is required').max(30, 'Grade level is too long'),
-  dateOfBirth: dateSchema.nullish(),
+  dateOfBirth: birthDateSchema,
+  classId: idSchema.nullish(),
+  familyId: idSchema.nullish(),
 })
 
 export const studentUpdateSchema = z.object({
@@ -36,7 +58,9 @@ export const studentUpdateSchema = z.object({
   email: emailSchema.optional(),
   password: passwordSchema.optional(),
   gradeLevel: z.string().trim().min(1, 'Grade level is required').max(30, 'Grade level is too long').optional(),
-  dateOfBirth: dateSchema.nullish(),
+  dateOfBirth: birthDateSchema.nullish(),
+  classId: idSchema.nullish(),
+  familyId: idSchema.nullish(),
 })
 
 export const teacherCreateSchema = z.object({
@@ -89,7 +113,9 @@ export interface StudentCreateInput {
   email: string
   password: string
   gradeLevel: string
-  dateOfBirth?: string | null
+  dateOfBirth: string
+  classId?: number | null
+  familyId?: number | null
 }
 
 export interface StudentUpdateInput {
@@ -98,6 +124,8 @@ export interface StudentUpdateInput {
   password?: string
   gradeLevel?: string
   dateOfBirth?: string | null
+  classId?: number | null
+  familyId?: number | null
 }
 
 export interface TeacherCreateInput {
@@ -147,3 +175,18 @@ export const changePasswordSchema = z
     message: 'New password must be different from the current one',
     path: ['newPassword'],
   })
+
+const phoneSchema = z.string().trim().regex(/^[+0-9 ()-]{7,20}$/, 'Enter a valid phone number')
+
+export const familyCreateSchema = z.object({
+  familyName: nameSchema,
+  guardianName: nameSchema,
+  guardianPhone: phoneSchema,
+  guardianEmail: emailSchema.nullish(),
+  address: z.string().trim().max(200, 'Address is too long').nullish(),
+})
+
+export const familyUpdateSchema = familyCreateSchema.partial()
+
+export type FamilyCreateInput = z.infer<typeof familyCreateSchema>
+export type FamilyUpdateInput = z.infer<typeof familyUpdateSchema>

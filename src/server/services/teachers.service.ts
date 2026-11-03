@@ -2,10 +2,11 @@ import { Prisma } from '@prisma/client'
 import { db } from '@/lib/db'
 import { ApiError } from '@/server/errors'
 import { hashPassword } from '@/server/services/auth.service'
+import { nextTeacherCode, withCodeRetry } from '@/server/services/codes'
 import type { TeacherCreateInput, TeacherUpdateInput } from '@/server/validation'
 import type { TeacherDto } from '@/types/school'
 
-type TeacherWithUser = Prisma.TeacherGetPayload<{ include: { user: true; _count: { select: { courses: true } } } }>
+type TeacherWithUser = Prisma.TeacherGetPayload<{ include: { user: true; _count: { select: { courses: true; homeroomClasses: true } } } }>
 
 function toTeacherDto(teacher: TeacherWithUser): TeacherDto {
   return {
@@ -14,18 +15,26 @@ function toTeacherDto(teacher: TeacherWithUser): TeacherDto {
     name: teacher.user.name,
     email: teacher.user.email,
     courseCount: teacher._count.courses,
+    teacherCode: teacher.teacherCode,
+    classCount: teacher._count.homeroomClasses,
     createdAt: teacher.user.createdAt.toISOString(),
   }
 }
 
 export async function listTeachers(search: string): Promise<TeacherDto[]> {
   const where: Prisma.TeacherWhereInput = search
-    ? { OR: [{ user: { name: { contains: search } } }, { user: { email: { contains: search } } }] }
+    ? {
+        OR: [
+          { user: { name: { contains: search, mode: 'insensitive' } } },
+          { user: { email: { contains: search, mode: 'insensitive' } } },
+          { teacherCode: { contains: search, mode: 'insensitive' } },
+        ],
+      }
     : {}
 
   const teachers = await db.teacher.findMany({
     where,
-    include: { user: true, _count: { select: { courses: true } } },
+    include: { user: true, _count: { select: { courses: true, homeroomClasses: true } } },
     orderBy: { user: { name: 'asc' } },
   })
   return teachers.map(toTeacherDto)
@@ -37,10 +46,13 @@ export async function createTeacher(input: TeacherCreateInput): Promise<TeacherD
   if (existing) throw new ApiError(409, 'A user with this email already exists.')
 
   const passwordHash = await hashPassword(input.password)
-  const teacher = await db.teacher.create({
-    data: { user: { create: { name: input.name.trim(), email, passwordHash, role: 'TEACHER' } } },
-    include: { user: true, _count: { select: { courses: true } } },
-  })
+  const teacher = await withCodeRetry(async () => db.teacher.create({
+    data: {
+      teacherCode: await nextTeacherCode(),
+      user: { create: { name: input.name.trim(), email, passwordHash, role: 'TEACHER' } },
+    },
+    include: { user: true, _count: { select: { courses: true, homeroomClasses: true } } },
+  }))
   return toTeacherDto(teacher)
 }
 
@@ -67,7 +79,7 @@ export async function updateTeacher(id: number, input: TeacherUpdateInput): Prom
 
   const updated = await db.teacher.findUniqueOrThrow({
     where: { id },
-    include: { user: true, _count: { select: { courses: true } } },
+    include: { user: true, _count: { select: { courses: true, homeroomClasses: true } } },
   })
   return toTeacherDto(updated)
 }
