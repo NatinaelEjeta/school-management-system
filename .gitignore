@@ -60,3 +60,5 @@ env.txt
 *.env
 .env.*
 !.env.example
+
+backups/
